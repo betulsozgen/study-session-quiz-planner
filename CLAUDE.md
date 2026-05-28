@@ -2,15 +2,18 @@
 
 ## What this project is
 
-A Python CLI app that uses the Claude API to generate a personalized study plan and quiz,
-then saves the session to a text file in `saved_sessions/`.
+A Python CLI app that presents a menu of subjects and topics, generates a
+personalized day-by-day study plan, pulls random quiz questions from a local
+question bank, and saves the full session to a text file in `saved_sessions/`.
+
+No external APIs or API keys required — runs entirely with the Python standard
+library plus `pytest`.
 
 ## Stack
 
 - Python 3.10+
-- `anthropic` SDK (Claude API)
 - `pytest` for testing
-- Standard library only (no Flask, no database)
+- Standard library only (`random`, `os`, `datetime`)
 
 ## How to run
 
@@ -18,7 +21,7 @@ then saves the session to a text file in `saved_sessions/`.
 python main.py
 ```
 
-Requires `ANTHROPIC_API_KEY` set as an environment variable.
+No environment variables needed.
 
 ## How to run tests
 
@@ -26,21 +29,38 @@ Requires `ANTHROPIC_API_KEY` set as an environment variable.
 pytest
 ```
 
-Tests mock the Claude client — no live API key needed.
+All tests run without network access or API keys.
 
 ## File responsibilities
 
 | File | Responsibility |
 |------|---------------|
-| `main.py` | CLI entry point, user input collection, orchestration |
-| `study_planner.py` | Build study plan prompt, call Claude for study plan |
-| `quiz_generator.py` | Build quiz prompt, call Claude for quiz questions |
-| `file_saver.py` | Save session output to `saved_sessions/` as a `.txt` file |
+| `main.py` | CLI entry point, numbered menus for subject/topic, input validation, orchestration |
+| `question_bank.py` | All quiz questions organized by subject → topic → difficulty |
+| `study_planner.py` | Rule-based day-by-day study plan generator |
+| `quiz_generator.py` | Randomly samples questions from the bank by difficulty |
+| `file_saver.py` | Saves session output to `saved_sessions/{subject}_{date}_{time}.txt` |
+
+## Question bank structure
+
+```python
+QUESTION_BANK = {
+    "Subject": {
+        "Topic": {
+            "easy":   [{"q": "...", "a": "..."}, ...],
+            "medium": [...],
+            "hard":   [...],
+        }
+    }
+}
+```
+
+Current subjects: Biology, Math, History, Computer Science
 
 ## Conventions
 
 - Do not edit `tests/` to make them pass — fix source files instead.
 - Keep changes scoped to the task at hand.
 - Read the test file first — it describes the expected behavior exactly.
-- Always read a task description before writing code for it.
 - `saved_sessions/` is auto-created at runtime and is git-ignored.
+- To add a new subject or topic, edit `question_bank.py` only — no other files need to change.
